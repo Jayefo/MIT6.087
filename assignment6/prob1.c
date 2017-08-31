@@ -340,7 +340,7 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
     p_expr_token stoken = NULL;
 
 
-    while(ptoken = dequeue(pqueue_infix))
+    while((ptoken = dequeue(pqueue_infix)))
     {
        if(ptoken->type == OPERAND)
        {
@@ -354,7 +354,7 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
             }
             else
             {
-                while(stoken = pop(&ptop))
+                while((stoken = pop(&ptop)))
                 {
                     int s_precedences = op_precedences[(int)stoken->value.op_code];
                     int p_precedences = op_precedences[(int)ptoken->value.op_code];
@@ -378,7 +378,7 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
        }
     }
 
-    while(stoken=pop(&ptop))
+    while((stoken=pop(&ptop)))
     {
         enqueue(&queue_postfix,stoken);
     }
@@ -393,4 +393,82 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
 double evaluate_postfix(struct token_queue * pqueue_postfix) {
 	/* TODO: process postfix-ordered queue and return final answer;
 	   all tokens from postfix-ordered queue is freed */
+    /*
+    1. dequeue a token from the postfix queue
+    2. if token is an operand, push onto stack
+    3. if token if an operator, pop operands off stack (2 for binary operator);
+        push result onto stack
+    4. repeat until queue is empty
+    5. item remaining in stack is final result
+    */
+
+    //STACK elements
+    p_expr_token ptop = NULL;
+    p_expr_token stoken_1 = NULL;
+    p_expr_token stoken_2 = NULL;
+    //QUEUE elements
+    p_expr_token ptoken = NULL;
+
+    p_expr_token res_token = NULL;
+    res_token->type = OPERAND;
+    res_token->linked_token = NULL;
+
+    double temp_result;
+//    double final_result;
+
+    while((ptoken = dequeue(pqueue_postfix)))
+    {
+        if(ptoken->type == OPERAND)
+        {
+            push(&ptop,ptoken);
+            continue;
+        }
+        else// (ptoken->type == OPERATOR)
+        {
+
+            stoken_1 = pop(&ptop);
+            if(stoken_1 == NULL)
+                printf("empty token from stack line: %d\n",__LINE__);
+            if(ptoken->value.op_code != NEGATE)
+            {
+                stoken_2 = pop(&ptop);
+                if(stoken_1 == NULL)
+                    printf("empty token from stack line: %d\n",__LINE__);
+            }
+
+
+            if(ptoken->value.op_code == ADD)
+            {
+                temp_result = stoken_2->value.operand + stoken_1->value.operand;
+            }
+            else if(ptoken->value.op_code == SUBTRACT)
+            {
+                temp_result = stoken_2->value.operand - stoken_1->value.operand;
+            }
+            else if(ptoken->value.op_code == MULTIPLY)
+            {
+                temp_result = stoken_2->value.operand * stoken_1->value.operand;
+            }
+            else if(ptoken->value.op_code == DIVIDE)
+            {
+                temp_result = stoken_2->value.operand / stoken_1->value.operand;
+            }
+            else if(ptoken->value.op_code == NEGATE)
+            {
+                temp_result = 0 - stoken_1->value.operand;
+            }
+            else
+            {
+                printf("no valid op_code\n");
+            }
+            res_token->value.operand = temp_result;
+            push(&ptop,res_token);
+        }
+
+    }
+
+    res_token = pop(&ptop);
+    printf("result = %f",res_token->value.operand);
+
+    return res_token->value.operand;
 }
