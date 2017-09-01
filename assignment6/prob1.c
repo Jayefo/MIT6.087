@@ -101,9 +101,9 @@ double evaluate(const char * str);
 void print_token(p_expr_token ptoken)
 {
     if(ptoken->type == OPERAND)//operand
-        printf("%lf ",ptoken->value.operand);
+        printf("%lf \n",ptoken->value.operand);
     else//operator
-        printf("%s ",enum_op_list[(int)ptoken->value.op_code]);
+        printf("%s \n",enum_op_list[(int)ptoken->value.op_code]);
 }
 void display_queue(struct token_queue * pqueue)
 {
@@ -161,13 +161,6 @@ int main(void) {
           ptoken - token pointer to add
    postcondition: token added to end of queue */
 void enqueue(struct token_queue * pqueue, const p_expr_token ptoken) {
-    /*
-    if(ptoken->type == OPERAND)//operand
-        printf("token operand %lf\n",ptoken->value.operand);
-    else//operator
-        printf("token operator %s\n",enum_op_list[(int)ptoken->value.op_code]);
-    */
-
 	ptoken->linked_token = NULL;
 	if (pqueue->back)
 		pqueue->back->linked_token = ptoken;
@@ -327,6 +320,7 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
         > top operator on stack has higher precedence, or
         > top operator on stack has same precedence and its left-associative
       and push new operator onto stack
+        *** if ), pop to (, and pop (
     4. return to step 1 as long as tokens remain in input
     5. pop remaining operator from stack and add to output queue
     */
@@ -342,12 +336,16 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
 
     while((ptoken = dequeue(pqueue_infix)))
     {
+       //print_token(ptoken);
        if(ptoken->type == OPERAND)
        {
            enqueue(&queue_postfix,ptoken);
        }
        else  //OPEARATOR
        {
+           //the very first one in infix queue is operator,
+           //only one possibility that this is a NEG operator
+           //push in
             if(ptop==NULL)
             {
                 push(&ptop,ptoken);
@@ -410,30 +408,45 @@ double evaluate_postfix(struct token_queue * pqueue_postfix) {
     p_expr_token ptoken = NULL;
 
     p_expr_token res_token = NULL;
-    res_token->type = OPERAND;
-    res_token->linked_token = NULL;
 
     double temp_result;
-//    double final_result;
+    double final_result;
 
+/*
+//test
+    display_queue(pqueue_postfix);
+
+    while((ptoken = dequeue(pqueue_postfix)))
+    {
+        print_token(ptoken);
+        //test
+    }
+    return 0;
+//test end
+*/
     while((ptoken = dequeue(pqueue_postfix)))
     {
         if(ptoken->type == OPERAND)
         {
             push(&ptop,ptoken);
-            continue;
+            //continue;
         }
         else// (ptoken->type == OPERATOR)
         {
 
             stoken_1 = pop(&ptop);
+
             if(stoken_1 == NULL)
                 printf("empty token from stack line: %d\n",__LINE__);
+
+
             if(ptoken->value.op_code != NEGATE)
             {
                 stoken_2 = pop(&ptop);
-                if(stoken_1 == NULL)
+
+                if(stoken_2 == NULL)
                     printf("empty token from stack line: %d\n",__LINE__);
+
             }
 
 
@@ -461,14 +474,26 @@ double evaluate_postfix(struct token_queue * pqueue_postfix) {
             {
                 printf("no valid op_code\n");
             }
-            res_token->value.operand = temp_result;
+            //test
+            printf("1 value %f\n",stoken_1->value.operand);
+            printf("2 value %f\n",stoken_2->value.operand);
+            printf("operator %d\n",(int)ptoken->value.op_code);
+            //test end
+
+            union token_value tv;
+            tv.operand = temp_result;
+            res_token = new_token(OPERAND,tv);
+            print_token(res_token);
             push(&ptop,res_token);
         }
 
     }
 
     res_token = pop(&ptop);
-    printf("result = %f",res_token->value.operand);
+    final_result = res_token->value.operand;
+    free(res_token);
+    printf("final result = %f\n",final_result);
 
-    return res_token->value.operand;
+    return final_result;
+
 }
