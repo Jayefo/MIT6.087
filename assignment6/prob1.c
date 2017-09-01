@@ -14,7 +14,7 @@
 
 /* enable (1) or disable (0) parentheses checking in parsing strings */
 /* leave disabled for part (a); enable for part (b) */
-#define PARSE_PARENS 0
+#define PARSE_PARENS 1
 
 /* type of token */
 enum token_type {
@@ -102,6 +102,16 @@ void print_token(p_expr_token ptoken)
 {
     if(ptoken->type == OPERAND)//operand
         printf("%lf \n",ptoken->value.operand);
+#if PARSE_PARENS
+    else if (ptoken->type == LPARENS)
+    {
+        printf("( \n");
+    }
+    else if (ptoken->type == RPARENS)
+    {
+        printf(") \n");
+    }
+#endif
     else//operator
         printf("%s \n",enum_op_list[(int)ptoken->value.op_code]);
 }
@@ -230,9 +240,12 @@ double evaluate(const char * str) {
 	/* get queue of tokens in infix order from string buffer */
 	queue_infix = expr_to_infix(strbuffer);
 
+    display_queue(&queue_infix);
 
 	/* get queue of tokens in postfix order from infix-ordered queue */
 	queue_postfix = infix_to_postfix(&queue_infix);
+
+    display_queue(&queue_postfix);
 
 	/* get answer from postfix-ordered queue */
 	ans = evaluate_postfix(&queue_postfix);
@@ -315,12 +328,15 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
 
     /*
     1. dequeue token from input
+        //#if PARSE_PARENS
+            ***if (, push to stack
+            ***if ), pop stack and add to output queue until (, then pop ( and discard.
+        //#endif
     2. if operand (number), add to output queue
     3. if operator, then pop operator off stack and add to output queue as long as
         > top operator on stack has higher precedence, or
         > top operator on stack has same precedence and its left-associative
       and push new operator onto stack
-        *** if ), pop to (, and pop (
     4. return to step 1 as long as tokens remain in input
     5. pop remaining operator from stack and add to output queue
     */
@@ -341,6 +357,26 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
        {
            enqueue(&queue_postfix,ptoken);
        }
+#if PARSE_PARENS
+       else if(ptoken->type == LPARENS)
+       {
+           printf("dequeued (\n");
+           push(&ptop,ptoken);
+       }
+       else if(ptoken->type == RPARENS)
+       {
+           printf("dequeued )\n");
+           p_expr_token temp_token = NULL;
+           while((temp_token = pop(&ptop)))
+           {
+               if(temp_token->type == LPARENS)
+               {
+                   break;
+               }
+               enqueue(&queue_postfix,temp_token);
+           }
+       }
+#endif // PARSE_PARENS
        else  //OPEARATOR
        {
            //the very first one in infix queue is operator,
@@ -354,6 +390,14 @@ struct token_queue infix_to_postfix(struct token_queue * pqueue_infix) {
             {
                 while((stoken = pop(&ptop)))
                 {
+#if PARSE_PARENS
+                    if(stoken->type == LPARENS)
+                    {
+                        //don't pop, push it back
+                        push(&ptop,stoken);
+                        break;
+                    }
+#endif // PARSE_PARENS
                     int s_precedences = op_precedences[(int)stoken->value.op_code];
                     int p_precedences = op_precedences[(int)ptoken->value.op_code];
                     int s_associativity = (int)op_associativity[s_precedences];
