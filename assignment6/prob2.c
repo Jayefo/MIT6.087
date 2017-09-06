@@ -105,6 +105,11 @@ int main(int argc, char * argv[]) {
 struct s_trie_node * new_node(void) {
 	/* TODO: allocate a new node on the heap, and
 	   initialize all fields to default values */
+	   struct s_trie_node * newNode = (struct s_trie_node *)malloc(sizeof(struct s_trie_node));
+	   int i;
+	   newNode->translation = NULL;
+	   for(i=0;i<UCHAR_MAX;i++)
+            newNode->children[i] = NULL;
 }
 
 /* delete node and all its children
@@ -128,6 +133,19 @@ int add_word(const char * word, char * translation) {
 	   Be sure to store a copy of translation, since
 	   the string is reused by load_dictionary()
 	 */
+
+     //TODO, convert all 26*2 letters to int index so that we can
+     //transverse the tries more efficient;
+     int len_word = strlen(word);
+     int i;
+     struct s_trie_node * temp_root = proot;
+
+     for(i=0;i<len_word;i++)
+     {
+
+
+     }
+
 }
 
 /* delimiter for dictionary */
@@ -164,6 +182,7 @@ unsigned int load_dictionary(const char * filename) {
 		translation += strspn(translation, DELIMS);
 
 		/* add word to trie */
+		printf("<load_dictionary> word = %s, translation = %s\n",word,translation);
 		if (add_word(word, translation))
 			icount++;
 	}
