@@ -121,6 +121,18 @@ void delete_node(struct s_trie_node * pnode) {
 	   Be sure to free non-null translations!
 	   Hint: use recursion
 	 */
+	 int i;
+	 if(pnode->translation!=NULL)
+                free(pnode->translation);
+
+	 for(i=0;i<UCHAR_MAX;i++)
+     {
+        if(pnode->children[i]!=NULL)
+        {
+            delete_node(pnode->children[i]);
+        }
+     }
+     free(pnode);
 }
 
 
@@ -144,7 +156,7 @@ int add_word(const char * word, char * translation) {
      for(i=0;i<len_word;i++)
      {
          int index = (int)word[i];
-         printf("%c\n",word[i]);
+         //printf("%c\n",word[i]);
          if(temp_root->children[index] == NULL)
          {
             temp_root->children[index] = new_node();
@@ -163,7 +175,7 @@ int add_word(const char * word, char * translation) {
          }
          else
          {
-             printf("<add_word> TRANSLATE TO %s\n",temp_root->translation);
+             //printf("<add_word> TRANSLATE TO %s\n",temp_root->translation);
          }
 
      }
@@ -204,7 +216,7 @@ unsigned int load_dictionary(const char * filename) {
 		translation += strspn(translation, DELIMS);
 
 		/* add word to trie */
-		printf("<load_dictionary> word = %s, translation = %s\n",word,translation);
+		//printf("<load_dictionary> word = %s, translation = %s\n",word,translation);
 		if (add_word(word, translation))
 			icount++;
 	}
@@ -230,8 +242,17 @@ char * lookup_word(const char * word) {
        {
            int index = (int)word[i];
            if(temp_root->children[index] == NULL)
-            printf("<lookup_word> Error, null children at %c\n",word[i]);
+           {
+               //printf("<lookup_word> Null children at %c\n",word[i]);
+               return NULL;
+
+           }
            temp_root = temp_root->children[index];
+           if(i==len_word-1)
+           {
+               //printf("%s\n",temp_root->translation);
+               return temp_root->translation;
+           }
        }
 }
 
