@@ -23,6 +23,7 @@ struct wordrec* walloc(const char* str)
   struct wordrec* p=(struct wordrec*)malloc(sizeof(struct wordrec));
   if(p!=NULL)
   {
+      //count indicates how many times this str appears
       p->count=0;
       p->word=strdup(str); /*creates a duplicate*/
       p->next=NULL;
@@ -55,21 +56,48 @@ unsigned long hashstring(const char* str)
   @desc     returns a pointer to the word or creates
             it if required
 */
+/*
+The function lookup() returns a pointer to the record having the required string. If not
+found it returns NULL or optionally creates a new record at the correct location. Please
+complete the rest of the code.
+*/
 struct wordrec*  lookup(const char* str,int create)
 {
+  unsigned long hash=hashstring(str);/*starting point*/
   struct wordrec* wp=table[hash];
   struct wordrec* curr=NULL;
-  unsigned long hash=hashstring(str);/*starting point*/
+
   /*TODO: write code to
   follow the linked list to find str
   if found return pointer*/
+  //curr points to the elements in the array, that is the start of the linked list
+  curr = wp;
+  if(curr!=NULL)
+  {
+      //found
+      printf("%s\n",curr->word);
+    if(!strcmp(curr->word,str))
+    {
+        return curr;
+    }
+    curr = curr->next;
+  }
 
   /*if not found and create specified*/
    if(create)
     {
-      /*TODO:write code to  
+      /*TODO:write code to
        create new node
       update linked list*/
+
+      //check if current table[hash] already have elements, hash collision
+      //if so, get to the end of the linked list
+      curr = wp;
+      while(curr!=NULL)
+        curr = curr->next;
+      //create new node at the end, curr->next points to null
+      curr = walloc(str);
+      printf("created %s\n",curr->word);
     }
   return curr;
 }
@@ -83,13 +111,13 @@ void cleartable()
   struct wordrec* wp=NULL,*p=NULL;
   int i=0;
   /*TODO: write code to
-    reclaim memory 
+    reclaim memory
   */
 }
 
 int main(int argc,char* argv[])
 {
-  FILE* fp=fopen("book.txt","r");
+  FILE* fp=fopen("new_book.txt","r");
   char  word[1024]; /*big enough*/
   struct wordrec* wp=NULL;
   int i=0;
