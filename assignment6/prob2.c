@@ -106,6 +106,7 @@ struct s_trie_node * new_node(void) {
 	/* TODO: allocate a new node on the heap, and
 	   initialize all fields to default values */
 	   struct s_trie_node * newNode = (struct s_trie_node *)malloc(sizeof(struct s_trie_node));
+	   //printf("sizeof(struct s_trie_node) %lu\n",sizeof(struct s_trie_node));
 	   int i;
 	   newNode->translation = NULL;
 	   for(i=0;i<UCHAR_MAX;i++)
@@ -122,6 +123,7 @@ void delete_node(struct s_trie_node * pnode) {
 	 */
 }
 
+
 /* add word to trie, with translation
    input: word and translation
    output: non-zero if new node added, zero otherwise
@@ -134,15 +136,35 @@ int add_word(const char * word, char * translation) {
 	   the string is reused by load_dictionary()
 	 */
 
-     //TODO, convert all 26*2 letters to int index so that we can
-     //transverse the tries more efficient;
      int len_word = strlen(word);
+     int len_translation = strlen(translation);
      int i;
      struct s_trie_node * temp_root = proot;
-
+     //use letter's ascii number as the index of the children
      for(i=0;i<len_word;i++)
      {
+         int index = (int)word[i];
+         printf("%c\n",word[i]);
+         if(temp_root->children[index] == NULL)
+         {
+            temp_root->children[index] = new_node();
+         }
+         temp_root = temp_root->children[index];
 
+         if(i==len_word-1)
+         {
+            temp_root->translation = (char*)malloc(sizeof(char)*len_translation);
+            memcpy(temp_root->translation,translation,sizeof(char)*len_translation);
+         }
+
+         if(temp_root->translation == NULL)
+         {
+            //printf("<add_word> NULL TRANSLATION\n");
+         }
+         else
+         {
+             printf("<add_word> TRANSLATE TO %s\n",temp_root->translation);
+         }
 
      }
 
@@ -198,5 +220,18 @@ unsigned int load_dictionary(const char * filename) {
 char * lookup_word(const char * word) {
 	/* TODO: search trie structure for word
 	   return NULL if word is not found */
+
+       int len_word = strlen(word);
+       char * translation = NULL;
+       int i;
+       struct s_trie_node * temp_root = proot;
+
+       for(i=0;i<len_word;i++)
+       {
+           int index = (int)word[i];
+           if(temp_root->children[index] == NULL)
+            printf("<lookup_word> Error, null children at %c\n",word[i]);
+           temp_root = temp_root->children[index];
+       }
 }
 
