@@ -31,7 +31,8 @@ struct student class[]={
 */
 int compare_first_name(const void* a,const void* b)
 {
-  return 1; /*place holder for now*/
+    return strcmp(((struct student *)a)->fname,((struct student *)b)->fname);
+  //return 1; /*place holder for now*/
 }
 
 /*
@@ -41,14 +42,14 @@ int compare_first_name(const void* a,const void* b)
 */
 int compare_last_name(const void* a,const void* b)
 {
-  
-  return 1; /*place holder for now*/
+    return strcmp(((struct student *)a)->lname,((struct student *)b)->lname);
+  //return 1; /*place holder for now*/
 
 }
 
 /*!
   @function apply
-  @desc     applies 
+  @desc     applies
  */
 void apply(struct student* sarr,int nrec,void (*fp)(void* prec,void* arg),void* arg)
 {
@@ -60,7 +61,7 @@ void apply(struct student* sarr,int nrec,void (*fp)(void* prec,void* arg),void* 
     }
 }
 
-/* 
+/*
   @function printrec
   @desc     prints student record
 */
@@ -71,14 +72,16 @@ void printrec(void* prec,void* arg)
 }
 
 
-/* 
+/*
   @function isolder
   @desc     prints student record onlyl if the student is older than *((int*)arg)
-  NOTE: use the same format as 
+  NOTE: use the same format as
 */
 void isolder(void* prec,void* arg)
 {
-  
+    if(((struct student *)prec)->age > (*(int*)arg))
+        printf("%d\n",((struct student *)prec)->age);
+    return;
 }
 
 int main()
@@ -87,24 +90,24 @@ int main()
   int age;
 
   puts("Raw records:");
-  puts("-------------------------------");  
+  puts("-------------------------------");
   apply(class,nstudents,printrec,NULL);
 
   /*sort based on first name*/
   puts("Sorted by first name:");
-  puts("-------------------------------");  
+  puts("-------------------------------");
   qsort(class,nstudents,sizeof(struct student),compare_first_name);
   apply(class,nstudents,printrec,NULL);
 
   /*sort based on last name*/
   puts("Sorted by last name:");
-  puts("-------------------------------");  
+  puts("-------------------------------");
   qsort(class,nstudents,sizeof(struct student),compare_last_name);
   apply(class,nstudents,printrec,NULL);
 
   /*print people older than 20*/
   puts("People older than 20:");
-  puts("-------------------------------");  
+  puts("-------------------------------");
   age=20;
   apply(class,nstudents,isolder,&age);
   return 0;
