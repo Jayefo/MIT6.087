@@ -31,6 +31,15 @@ typedef struct s_record {
 	char * url;
 } nodevalue;
 
+
+/*
+According to Knuth's definition, a B-tree of order m is a tree which satisfies the following properties:
+1. Every node has at most m children.
+2. Every non-leaf node (except root) has at least ⌈m/2⌉ children.
+3. The root has at least two children if it is not a leaf node.
+4. A non-leaf node with k children contains k−1 keys.
+5. All leaves appear in the same level
+*/
 /* B-tree node structure */
 typedef struct s_tnode {
 	nodekey keys[2*T-1]; /* keys */
@@ -327,19 +336,20 @@ int store_result(void * pextra, int nfields, char ** arrvalues, char ** arrfield
 int main(int argc, char * argv[]) {
 
 	/* part (a): execute the first three SQL queries */
-	const char sql[] = "SELECT * FROM movies WHERE ProductionYear < 1950";
+	//const char sql[] = "SELECT * FROM movies WHERE ProductionYear < 1950";
 	/* const char sql[] = "SELECT * FROM movies WHERE Format == \"VHS\""; */
 	/* const char sql[] = "SELECT * FROM movies WHERE Language == \"Spanish\""; */
 
 	/* part (b, c, d): use this SQL query to read the entire table */
-	/* const char sql[] = "SELECT * FROM movies"; */
+	 const char sql[] = "SELECT * FROM movies";
 
 	if (argc < 2) {
 		fprintf(stderr,"Error: database name not specified!\n");
 		return 1;
 	}
 
-	/* TODO: load the database, probably using sqlite3_open() */
+/* part (a) */
+	/*DONE load the database, probably using sqlite3_open() */
     sqlite3 *db;
     int rc;
     rc = sqlite3_open(argv[1],&db);
@@ -347,12 +357,12 @@ int main(int argc, char * argv[]) {
     {
         fprintf(stderr, "ERROR: can't open database: %s\n",sqlite3_errmsg(db));
     }
-
-	/* TODO: execute the SQL query, probably using sqlite3_exec() */
-    sqlite3_exec(db,sql,display_result,NULL,NULL);
-
-	/* TODO: close the database when you're done with it */
+	/*DONE execute the SQL query, probably using sqlite3_exec() */
+    //sqlite3_exec(db,sql,display_result,NULL,NULL);
+    sqlite3_exec(db,sql,store_result,NULL,NULL);
+	/*DONE close the database when you're done with it */
 	sqlite3_close(db);
+/* part (a) end*/
 
 	return 0;
 }
