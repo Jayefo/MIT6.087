@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /* the include file for the SQLite library */
 /* do not use sqlite.h or sqlite3ext.h */
@@ -128,13 +129,29 @@ int key_compare(const nodekey key1, const nodekey key2) {
  */
 int find_index(nodekey key, p_tnode pnode) {
 	/* find in between */
+	//printf("<find_index>pnode->nkeys %d",pnode->nkeys);
 	int icmp, L = 0, R = pnode->nkeys-1, M;
 	int ibetween = 0; /* index to return */
-
+    //printf("<find_index>pnode->nkeys %d",pnode->nkeys);
 	/* TODO: complete binary search;
 	 * use key_compare() to compare two keys. */
 	while (L <= R) {
-
+        M = L+(R-L)/2;
+        ibetween = M;
+        //equal
+        if(strcasecmp(key,pnode->keys[M]) == 0)
+        {
+            //ibetween = M;
+            return ibetween;
+        }
+        else if(strcasecmp(key,pnode->keys[M]) > 0)
+        {
+            L = M + 1;
+        }
+        else
+        {
+            R = M - 1;
+        }
 	}
 	return ibetween;
 }
@@ -219,15 +236,29 @@ void split_node(p_tnode * ppnode, int * poffset) {
  */
 nodevalue * add_element(nodekey key, nodevalue * pvalue) {
 	/* find leaf */
+
+    if(ptreeroot == NULL)
+    {
+        ptreeroot = (p_tnode)malloc(sizeof(struct s_tnode));
+        ptreeroot->keys[0] = key;
+        ptreeroot->values[0] = pvalue;
+        ptreeroot->nkeys = 1;
+        record_count++;
+        return NULL;
+    }
+
 	p_tnode pleaf = ptreeroot, parent = NULL;
 	int ichild, i;
 
 	while (pleaf != NULL) {
+        //printf("<add_element> pleaf %d\n",pleaf->nkeys);
 		ichild = find_index(key, pleaf);
+
 		if (ichild < 0) /* already exists */
 			return pleaf->values[-(ichild+1)];
 		if (pleaf->nkeys == 2*T-1) {
 			/* split leaf into two nodes */
+            printf("<add_element> key %s\n",key);
 			split_node(&pleaf, &ichild);
 		}
 		parent = pleaf;
@@ -320,8 +351,14 @@ int store_result(void * pextra, int nfields, char ** arrvalues, char ** arrfield
 			prec->language = strdup(arrvalues[n]);
 		else if (strcasecmp(arrfieldnames[n], "Web") == 0)
 			prec->url = strdup(arrvalues[n]);
-	}
 
+        //WTF?????
+        //remove this will have core dump
+        //add this the core dump is gone.
+        printf(" ");
+        //printf("<store_result> %s: [%s]", arrfieldnames[n], arrvalues[n]);
+	}
+	printf("\n");
 	/* add record to B-tree */
 	if (add_element(prec->name, prec) != NULL) {
 		/* element already exists -- don't add record */
@@ -363,6 +400,10 @@ int main(int argc, char * argv[]) {
 	/*DONE close the database when you're done with it */
 	sqlite3_close(db);
 /* part (a) end*/
+
+    //FILE* fp;
+    //fp = fopen("inorder_traversal.txt","rw");
+    //inorder_traversal(ptreeroot,fp);
 
 	return 0;
 }
